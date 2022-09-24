@@ -1,33 +1,41 @@
 version: '3.5'
 # 网络配置
 networks:
-  backend:
+  hushengs:
     driver: ${NETWORKS_DRIVER}
+    driver_opts:
+            com.docker.network.enable_ipv6: "false"
+    ipam:
+            driver: default
+            config:
+                - subnet: 172.18.1.0/24
+                  gateway: 172.18.1.1
 
 # 服务容器配置
 services:
-  # golang:                                # 自定义容器名称
-  #   build:
-  #     context: ./golang                  # 指定构建使用的 Dockerfile 文件
-  #   environment:                         # 设置环境变量
-  #     - TZ=${TZ}
-  #   privileged: true
-  #   volumes:                             # 设置挂载目录
-  #     - ${CODE_PATH_HOST}:/usr/src/code  # 引用 .env 配置中 CODE_PATH_HOST 变量，将宿主机上代码存放的目录挂载到容器中 /usr/src/code 目录
-  #   ports:                               # 设置端口映射
-  #     - "8000:8000"
-  #     - "8001:8001"
-  #     - "8002:8002"
-  #     - "8003:8003"
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #     - "9002:9002"
-  #     - "9003:9003"
-  #   stdin_open: true                     # 打开标准输入，可以接受外部输入
-  #   tty: true
-  #   networks:
-  #     - backend
-  #   restart: always                      # 指定容器退出后的重启策略为始终重启
+  golang:                                # 自定义容器名称
+    build:
+      context: ./golang                  # 指定构建使用的 Dockerfile 文件
+    environment:                         # 设置环境变量
+      - TZ=${TZ}
+    privileged: true
+    volumes:                             # 设置挂载目录
+      - ${CODE_PATH_HOST}:/usr/src/code  # 引用 .env 配置中 CODE_PATH_HOST 变量，将宿主机上代码存放的目录挂载到容器中 /usr/src/code 目录
+    ports:                               # 设置端口映射
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+      - "9000:9000"
+      - "9001:9001"
+      - "9002:9002"
+      - "9003:9003"
+    stdin_open: true                     # 打开标准输入，可以接受外部输入
+    tty: true
+    networks:
+            hushengs:
+                ipv4_address: 172.18.1.2
+    restart: always                      # 指定容器退出后的重启策略为始终重启
 
   # etcd:                                  # 自定义容器名称
   #   build:
@@ -39,7 +47,7 @@ services:
   #   ports:                               # 设置端口映射
   #     - "${ETCD_PORT}:2379"
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # mysql:
@@ -56,7 +64,7 @@ services:
   #   ports:
   #     - "${MYSQL_PORT}:3306"                          # 设置容器3306端口映射指定宿主机端口
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # redis:
@@ -70,7 +78,7 @@ services:
   #   ports:
   #     - "${REDIS_PORT}:6379"                          # 设置容器6379端口映射指定宿主机端口
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # mysql-manage:
@@ -89,7 +97,7 @@ services:
   #   depends_on:                                           # 依赖容器
   #     - mysql                                             # 在 Mysql 服务容器启动后启动
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # redis-manage:
@@ -106,7 +114,7 @@ services:
   #   depends_on:                                       # 依赖容器
   #     - redis                                         # 在 Redis 服务容器启动后启动
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # etcd-manage:
@@ -119,7 +127,7 @@ services:
   #   depends_on:                                       # 依赖容器
   #     - etcd                                          # 在 etcd 服务容器启动后启动
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # prometheus:
@@ -133,7 +141,7 @@ services:
   #   ports:
   #     - "${PROMETHEUS_PORT}:9090"                     # 设置容器9090端口映射指定宿主机端口，用于宿主机访问可视化web
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # grafana:
@@ -144,7 +152,7 @@ services:
   #   ports:
   #     - "${GRAFANA_PORT}:3000"                        # 设置容器3000端口映射指定宿主机端口，用于宿主机访问可视化web
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # jaeger:
@@ -155,7 +163,7 @@ services:
   #   ports:
   #     - "${JAEGER_PORT}:16686"                        # 设置容器16686端口映射指定宿主机端口，用于宿主机访问可视化web
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   # dtm:
@@ -173,7 +181,7 @@ services:
   #     - "${DTM_HTTP_PORT}:36789"
   #     - "${DTM_GRPC_PORT}:36790"
   #   networks:
-  #     - backend
+  #     - hushengs
   #   restart: always
 
   elasticsearch:
@@ -192,7 +200,8 @@ services:
     ports:
       - "${ELASTIC_PORT}:9200"
     networks:
-      - backend
+            hushengs:
+                ipv4_address: 172.18.1.3
 
   # kibana:
   #   build:
@@ -202,6 +211,6 @@ services:
   #   ports:
   #     - "${KIBANA_PORT}:5601"
   #   networks:
-  #     - backend
+  #     - hushengs
   #   mem_limit: 256m
   #   restart: always
